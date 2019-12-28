@@ -13,6 +13,42 @@ from mongoengine import (
 	IntField,
 )
 
+
+class Address(Document):
+	name = StringField()
+	fullAddress = StringField()
+	started = DateTimeField()
+	ended = DateTimeField()
+	scan = FileField()
+
+	def __unicode__(self):
+		return '{}'.format(self.name)
+
+	def download(self):
+		return Markup(
+			'<a href="'
+			+ url_for("ProjectFilesModelView.download", filename=str(self.file))
+			+ '">Download</a>'
+		)
+
+	def file_name(self):
+		return get_file_original_name(str(self.file))
+
+class Provider(Document):
+	name = StringField()
+
+	def __unicode__(self):
+		return '{}'.format(self.name)
+
+
+class Utilities(Document):
+	name = StringField()
+	provider = ReferenceField(Provider)
+
+	def __unicode__(self):
+		return '{} by {}'.format(self.name, self.provider)
+
+
 class Payments(Document):
 	p_date = DateTimeField()
 	paid = FloatField()
@@ -24,8 +60,8 @@ class Payments(Document):
 	bill = FloatField()
 	b_scan = FileField()
 	b_comm = StringField()
-	type = StringField()
-	addr = StringField()
+	type = ReferenceField(Utilities)
+	addr = ReferenceField(Address)
 
 	def downloadP(self):
 		return Markup(
@@ -45,22 +81,13 @@ class Payments(Document):
 	def file_nameB(self):
 		return get_file_original_name(str(self.b_scan))
 
-class Address(Document):
-	name = StringField()
-	fullAddress = StringField()
-	started = DateTimeField()
-	ended = DateTimeField()
-	scan = FileField()
+class Currency(Document):
+	code = StringField()
+	rate2gbp = FloatField()
+	date = DateTimeField()
 
-	def download(self):
-		return Markup(
-			'<a href="'
-			+ url_for("ProjectFilesModelView.download", filename=str(self.file))
-			+ '">Download</a>'
-		)
-
-	def file_name(self):
-		return get_file_original_name(str(self.file))
+	def __unicode__(self):
+		return '{}'.format(self.code)
 
 
 class Tariff(Document):
@@ -73,11 +100,11 @@ class Tariff(Document):
 	ended = DateTimeField()
 	comm = StringField()
 	doc = FileField()
-	type = StringField()
-	addr = StringField()
-	provider = StringField()
-	web = URLField()
-	currency = StringField()
+	type = ReferenceField(Utilities)
+	addr = ReferenceField(Address)
+	#provider = ReferenceField(Provider)
+	web = StringField()
+	currency = ReferenceField(Currency)
 
 	def download(self):
 		return Markup(
